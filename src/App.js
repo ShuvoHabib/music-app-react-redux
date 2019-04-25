@@ -5,46 +5,20 @@ import './App.css';
 
 class MusicList extends React.Component {
 	state = {
-		albumsAll: [],
-		inputCount: 0,
+		searchString: '',
 	};
 	
 	constructor(props) {
 		super(props);
 		this.onChange = this.onChange.bind(this);
-		this.updateState = this.updateState.bind(this);
 	}
-	updateState() {
-		const { albums } = this.props;
-		this.setState({
-			albumsAll: albums,
-		});
-	}
-	onChange(event) {
-		const q = event.target.value.toLowerCase();
-		let { albumsAll } = this.state;
-		albumsAll = albumsAll.filter((album) => {
-			let albumTitle = album.title.toLowerCase();
-			return albumTitle.indexOf(
-				q.toLowerCase()) !== -1
-		});
-		this.setState({
-			albumsAll,
-			inputCount: q.length,
-		});
-		if (q.length === 0) {
-			this.setState({
-				inputCount: 0,
-			});
-		}
+	
+	onChange(e) {
+		this.setState({ searchString:e.target.value });
 	}
 	
 	componentDidMount() {
 		this.props.dispatch(fetchMusic());
-		const { albums } = this.props;
-		this.setState({
-			albumsAll: albums,
-		});
 	}
 	
 	render() {
@@ -55,6 +29,13 @@ class MusicList extends React.Component {
 		if (loading) {
 			return <div>Loading...</div>;
 		}
+		let libraries = albums,
+			searchString = this.state.searchString.trim().toLowerCase();
+		if (searchString.length > 0) {
+			libraries = libraries.filter(function(i) {
+				return i.title.toLowerCase().match( searchString );
+			});
+		}
 		return (
 			<div className="App">
 				<div className="logo">Albums</div>
@@ -63,27 +44,10 @@ class MusicList extends React.Component {
 					placeholder="Search"
 					className="search-input form-control"
 					onChange={this.onChange}
-					onClick={this.updateState}
 				/>
 				<ul className="media-list">
 					{
-						this.state.inputCount > 0 && (this.state.albumsAll.map(music =>
-							<li className="media">
-								<div className="media-left">
-									<img className="media-object media-thumb" src={music.thumbnail_image} alt="..." />
-								</div>
-								<div className="media-body media-middle">
-									<h4 className="media-heading music-title">{music.title}</h4>
-									<h4 className="media-heading">{music.artist}</h4>
-								</div>
-								<div className="below">
-									<img className="media-object" src={music.image} alt="..." />
-								</div>
-							</li>
-						))
-					}
-					{
-						this.state.inputCount === 0 && (albums.map(music =>
+						(libraries.map(music =>
 							<li className="media">
 								<div className="media-left">
 									<img className="media-object media-thumb" src={music.thumbnail_image} alt="..." />
