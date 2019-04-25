@@ -4,27 +4,47 @@ import { fetchMusic } from "./actions/simpleAction";
 import './App.css';
 
 class MusicList extends React.Component {
+	state = {
+		albumsAll: [],
+		inputCount: 0,
+	};
+	
 	constructor(props) {
 		super(props);
-		
-		this.state = {
-			albums: [],
-			q: ''
-		};
+		this.onChange = this.onChange.bind(this);
+		this.updateState = this.updateState.bind(this);
 	}
-	
+	updateState() {
+		const { albums } = this.props;
+		this.setState({
+			albumsAll: albums,
+		});
+	}
 	onChange(event) {
 		const q = event.target.value.toLowerCase();
-		console.log(q);
-		let albums = this.props.albums;
-		albums = albums.filter(function(album) {
-			return album.title.toLowerCase().indexOf(q) != -1;
+		let { albumsAll } = this.state;
+		albumsAll = albumsAll.filter((album) => {
+			let albumTitle = album.title.toLowerCase();
+			return albumTitle.indexOf(
+				q.toLowerCase()) !== -1
 		});
-		this.setState({ albums: albums });
+		this.setState({
+			albumsAll,
+			inputCount: q.length,
+		});
+		if (q.length === 0) {
+			this.setState({
+				inputCount: 0,
+			});
+		}
 	}
 	
 	componentDidMount() {
 		this.props.dispatch(fetchMusic());
+		const { albums } = this.props;
+		this.setState({
+			albumsAll: albums,
+		});
 	}
 	
 	render() {
@@ -43,22 +63,41 @@ class MusicList extends React.Component {
 					placeholder="Search"
 					className="search-input form-control"
 					onChange={this.onChange}
+					onClick={this.updateState}
 				/>
 				<ul className="media-list">
-					{albums.map(music =>
-						<li className="media">
-							<div className="media-left">
-								<img className="media-object media-thumb" src={music.thumbnail_image} alt="..." />
-							</div>
-							<div className="media-body media-middle">
-								<h4 className="media-heading music-title">{music.title}</h4>
-								<h4 className="media-heading">{music.artist}</h4>
-							</div>
-							<div className="below">
-								<img className="media-object" src={music.image} alt="..." />
-							</div>
-						</li>
-					)}
+					{
+						this.state.inputCount > 0 && (this.state.albumsAll.map(music =>
+							<li className="media">
+								<div className="media-left">
+									<img className="media-object media-thumb" src={music.thumbnail_image} alt="..." />
+								</div>
+								<div className="media-body media-middle">
+									<h4 className="media-heading music-title">{music.title}</h4>
+									<h4 className="media-heading">{music.artist}</h4>
+								</div>
+								<div className="below">
+									<img className="media-object" src={music.image} alt="..." />
+								</div>
+							</li>
+						))
+					}
+					{
+						this.state.inputCount === 0 && (albums.map(music =>
+							<li className="media">
+								<div className="media-left">
+									<img className="media-object media-thumb" src={music.thumbnail_image} alt="..." />
+								</div>
+								<div className="media-body media-middle">
+									<h4 className="media-heading music-title">{music.title}</h4>
+									<h4 className="media-heading">{music.artist}</h4>
+								</div>
+								<div className="below">
+									<img className="media-object" src={music.image} alt="..." />
+								</div>
+							</li>
+						))
+					}
 				</ul>
 			</div>
 		);
